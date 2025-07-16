@@ -1,54 +1,50 @@
 <?php
 session_start();
-require_once '../App/Centro/DataBase.php';
+require_once '../App/Modelo/Pedido.php';
 
-if (!isset($_SESSION['usuario']) || empty($_SESSION['carrito'])) {
-    echo "⚠️ No hay sesión activa o el carrito está vacío.";
-    exit;
-}
+$pedido = new Pedido();
+$id_usuario = $_SESSION['usuario']['Id_usuario'] ?? null;
+$productos = $_SESSION['carrito'] ?? [];
 
-$usuario_id = $_SESSION['usuario']['Id_usuario'];
-$carrito = $_SESSION['carrito'];
-
-try {
-    $db = (new DataBase())->conn;
-    $db->beginTransaction();
-
-    // Calcular total del pedido
-    $total = 0;
-    foreach ($carrito as $id => $cantidad) {
-        $stmt = $db->prepare("SELECT Precio_venta FROM productos WHERE Id_Producto = ?");
-        $stmt->execute([$id]);
-        $producto = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($producto) {
-            $total += $producto['Precio_venta'] * $cantidad;
-        }
+$mensaje = '';
+if ($id_usuario && !empty($productos)) {
+    $resultado = $pedido->crearPedido($id_usuario, $productos);
+    if ($resultado) {
+        $mensaje = '✅ Pedido confirmado correctamente.';
+        unset($_SESSION['carrito']);
+    } else {
+        $mensaje = '❌ Error al confirmar el pedido.';
     }
-
-    // Insertar en tabla ventas_pedidos
-    $stmt = $db->prepare("INSERT INTO ventas_pedidos (id_usuario, estado, Fecha_Venta, medio_pago, total)
-                          VALUES (?, 'pendiente', NOW(), 'efectivo', ?)");
-    $stmt->execute([$usuario_id, $total]);
-    $pedido_id = $db->lastInsertId();
-
-    // Insertar en detalle_pedido
-    foreach ($carrito as $id_producto => $cantidad) {
-        $stmt = $db->prepare("INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad)
-                              VALUES (?, ?, ?)");
-        $stmt->execute([$pedido_id, $id_producto, $cantidad]);
-    }
-
-    // Limpiar carrito
-    unset($_SESSION['carrito']);
-    $db->commit();
-
-    echo "<p style='color:green;'>✅ Pedido confirmado correctamente.</p>";
-} catch (PDOException $e) {
-    $db->rollBack();
-    echo "<p style='color:red;'>❌ Error al confirmar el pedido: " . $e->getMessage() . "</p>";
+} else {
+    $mensaje = '⚠️ No hay productos en el carrito o no estás logueado.';
 }
 ?>
 
-<br>
-<a href="catalogo.php">← Volver al catálogo</a><br>
-<a href="usuario.php">🏠 Volver al panel del usuario</a>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmación de pedido</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .mensaje {
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mensaje text-center">
+    <div class="alert <?= str_contains($mensaje, '✅') ? 'alert-success' : 'alert-danger' ?> fw-bold" role="alert">
+      <?= $mensaje ?>
+    </div>
+
+    <div class="mt-4">
+      <a href="catalogo.php" class="btn btn-outline-primary me-2">← Volver al catálogo</a>
+      <a href="usuario.php" class="btn btn-outline-secondary">🏠 Volver al panel del usuario</a>
+    </div>
+  </div>
+</body>
+</html>

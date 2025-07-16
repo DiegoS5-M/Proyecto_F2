@@ -1,35 +1,127 @@
-<h2>Registrar producto</h2>
-<form action="/Proyecto_F2/Public/producto.php" method="POST">
-    <label>Nombre del producto:</label>
-    <input type="text" name="nombre" required><br>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrar Producto</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
 
-    <label>Código del producto (ID):</label>
-    <input type="text" name="id" required><br>
+<div class="container mt-5">
+  <h2 class="mb-4 text-center">📦 Registrar nuevo producto</h2>
 
-    <label>Precio de costo:</label>
-    <input type="number" name="precio_costo" step="0.01" required><br>
+  <?php if ($mensaje === 'exito'): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      ✅ <strong>Producto registrado correctamente.</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+  <?php elseif ($mensaje === 'error'): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      ❌ <strong>Error al registrar el producto.</strong> Intenta nuevamente.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+  <?php endif; ?>
 
-    <label>Precio de venta:</label> 
-    <input type="number" name="precio_venta" step="0.01" required><br>
+  <!-- Formulario -->
+  <form action="producto.php" method="POST" enctype="multipart/form-data" class="row g-3 mb-4">
 
-    <label>Cantidad en stock:</label>
-    <input type="number" name="cantidad" required><br><br>
+    <div class="col-md-6">
+      <label class="form-label">Nombre del producto</label>
+      <input type="text" class="form-control" name="nombre" required>
+    </div>
 
-    <label>Categoría:</label>
-<select name="tipo_producto" required>
-    <option value="">Seleccione</option>
-    <option value="1">Bebidas</option>
-    <option value="2">Comidas</option>
-    <option value="3">Snacks</option>
-    <option value="4">Postres</option>
-    <option value="5">Otros</option>
-</select>
+    <div class="col-md-6">
+      <label class="form-label">Código del producto (ID)</label>
+      <input type="text" class="form-control" name="id" required>
+    </div>
 
-    <button type="submit" name="registrar">Guardar producto</button>
-</form>
+    <div class="col-md-6">
+      <label class="form-label">Precio de costo</label>
+      <input type="number" step="0.01" class="form-control" name="precio_costo" required>
+    </div>
 
-<br>
-<a href="/Proyecto_F2/Public/producto.php?listar=1">📋 Ver productos registrados</a>
-<br><br>
-<a href="/Proyecto_F2/Public/admin.php">← Volver al panel del administrador</a>
+    <div class="col-md-6">
+      <label class="form-label">Precio de venta</label>
+      <input type="number" step="0.01" class="form-control" name="precio_venta" required>
+    </div>
 
+    <div class="col-md-6">
+      <label class="form-label">Cantidad en stock</label>
+      <input type="number" class="form-control" name="cantidad" required>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Categoría</label>
+      <select class="form-select" name="tipo_producto" required>
+        <option value="">Seleccione</option>
+        <option value="1">Bebidas</option>
+        <option value="2">Comidas</option>
+        <option value="3">Snacks</option>
+        <option value="4">Postres</option>
+        <option value="5">Otros</option>
+      </select>
+    </div>
+
+    <div class="col-md-12">
+      <label class="form-label">Foto del producto</label>
+      <input type="file" class="form-control" name="foto" accept="image/*" required>
+    </div>
+
+    <div class="col-12 text-center">
+      <button type="submit" name="registrar" class="btn btn-success">➕ Guardar producto</button>
+    </div>
+  </form>
+
+  <div class="text-center mb-4">
+    <a href="producto.php?listar=1" class="btn btn-info">📋 Ver productos registrados</a>
+    <a href="admin.php" class="btn btn-secondary">← Volver al panel del administrador</a>
+  </div>
+
+  <!-- Tabla -->
+  <?php if (!empty($productos)): ?>
+    <div class="card mt-4">
+      <div class="card-header bg-info text-white">
+        Productos registrados
+      </div>
+      <div class="card-body">
+        <table class="table table-striped table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Precio venta</th>
+              <th>Precio costo</th>
+              <th>Cantidad</th>
+              <th>Categoría</th>
+              <th>Foto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($productos as $p): ?>
+              <tr>
+                <td><?= htmlspecialchars($p['Id_Producto']) ?></td>
+                <td><?= htmlspecialchars($p['Nombre_Producto']) ?></td>
+                <td>$<?= number_format($p['Precio_venta'], 0, ',', '.') ?></td>
+                <td>$<?= number_format($p['Precio_costo'], 0, ',', '.') ?></td>
+                <td><?= $p['Cantidad_en_Stock'] ?></td>
+                <td><?= $p['Tipo_Producto'] ?></td>
+                <td>
+                  <?php if (!empty($p['Foto'])): ?>
+                    <img src="data:image/jpeg;base64,<?= base64_encode($p['Foto']) ?>" width="60" height="60" style="object-fit:cover;">
+                  <?php else: ?>
+                    <span class="text-muted">Sin imagen</span>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <?php endif; ?>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

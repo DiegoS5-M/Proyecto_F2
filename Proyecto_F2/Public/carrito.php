@@ -2,81 +2,95 @@
 session_start();
 require_once '../App/Modelo/Producto.php';
 
+// Obtener todos los productos disponibles
 $productoModel = new Producto();
+$productosDisponibles = $productoModel->obtenerTodos();
 
-// Inicializar carrito si no existe
-$carrito = $_SESSION['carrito'] ?? [];
+$productos = [];
+$total = 0;
 
-// 🗑️ Eliminar producto del carrito
-if (isset($_GET['eliminar'])) {
-    $id = $_GET['eliminar'];
-    unset($_SESSION['carrito'][$id]);
-    header("Location: carrito.php");
-    exit;
-}
+// Verificamos si el carrito existe
+if (!isset($_SESSION['carrito']) || empty($_SESSION['carrito'])) {
+    $carritoVacio = true;
+} else {
+    $carritoVacio = false;
 
-// 🚫 Vaciar todo el carrito
-if (isset($_GET['vaciar'])) {
-    unset($_SESSION['carrito']);
-    header("Location: carrito.php");
-    exit;
-}
+    // Crear un array asociativo con los productos por ID
+    foreach ($productosDisponibles as $prod) {
+        $productos[$prod['Id_Producto']] = $prod;
+    }
 
-$productosEnCarrito = [];
-if (!empty($carrito)) {
-    $todos = $productoModel->obtenerTodos();
-    foreach ($todos as $producto) {
-        $id = $producto['Id_Producto'];
-        if (isset($carrito[$id])) {
-            $producto['cantidad_seleccionada'] = $carrito[$id];
-            $producto['subtotal'] = $carrito[$id] * $producto['Precio_venta'];
-            $productosEnCarrito[] = $producto;
-        }
+    // Eliminar producto si se recibió el id para eliminar
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
+        $idEliminar = $_POST['eliminar_id'];
+        unset($_SESSION['carrito'][$idEliminar]);
+        header("Location: carrito.php");
+        exit;
     }
 }
 ?>
 
-<h2>🛒 Carrito de compras</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Carrito de compras</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">🛒 Carrito de compras</h2>
 
-<?php if (empty($productosEnCarrito)): ?>
-    <p>No has agregado productos aún.</p>
-<?php else: ?>
-    <table border="1">
-        <tr>
-            <th>Nombre</th>
-            <th>Precio</th>
-            <th>Cantidad</th>
-            <th>Subtotal</th>
-            <th>Quitar</th>
-        </tr>
-        <?php 
-        $total = 0;
-        foreach ($productosEnCarrito as $producto): 
-            $total += $producto['subtotal'];
-        ?>
-        <tr>
-            <td><?= htmlspecialchars($producto['Nombre_Producto']) ?></td>
-            <td>$<?= number_format($producto['Precio_venta'], 0, ',', '.') ?></td>
-            <td><?= $producto['cantidad_seleccionada'] ?></td>
-            <td>$<?= number_format($producto['subtotal'], 0, ',', '.') ?></td>
-            <td><a href="carrito.php?eliminar=<?= $producto['Id_Producto'] ?>" style="color:red;">❌</a></td>
-        </tr>
-        <?php endforeach; ?>
-        <tr>
-            <td colspan="3"><strong>Total</strong></td>
-            <td colspan="2"><strong>$<?= number_format($total, 0, ',', '.') ?></strong></td>
-        </tr>
-    </table>
+        <?php if ($carritoVacio): ?>
+            <div class="alert alert-warning text-center">
+                Tu carrito está vacío.
+            </div>
+            <div class="text-center mt-3">
+                <a href="usuario.php" class="btn btn-primary">← Volver al menú</a>
+            </div>
+        <?php else: ?>
+            <div class="row">
+                <?php foreach ($_SESSION['carrito'] as $id => $cantidad): 
+                    $prod = $productos[$id] ?? null;
+                    if (!$prod) continue;
 
-    <br>
-    <form action="confirmar_pedido.php" method="POST">
-        <button type="submit">✅ Confirmar pedido</button>
-    </form>
+                    $subtotal = $cantidad * $prod['Precio_venta'];
+                    $total += $subtotal;
+                ?>
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="row g-0">
+                            <div class="col-4">
+                                <?php if (!empty($prod['Foto'])): ?>
+                                    <img src="data:image/jpeg;base64,<?= base64_encode($prod['Foto']) ?>" class="img-fluid rounded-start" alt="Imagen">
+                                <?php else: ?>
+                                    <img src="https://via.placeholder.com/150x150?text=Sin+imagen" class="img-fluid rounded-start" alt="Sin imagen">
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-8">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?= htmlspecialchars($prod['Nombre_Producto']) ?></h5>
+                                    <p class="card-text">💲 <?= number_format($prod['Precio_venta'], 0, ',', '.') ?></p>
+                                    <p class="card-text">Cantidad: <?= $cantidad ?></p>
+                                    <p class="card-text fw-bold">Subtotal: $<?= number_format($subtotal, 0, ',', '.') ?></p>
+                                    <form method="POST" style="display:inline;">
+                                        <input type="hidden" name="eliminar_id" value="<?= $id ?>">
+                                        <button type="submit" class="btn btn-danger btn-sm">🗑️ Eliminar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
 
-    <br>
-    <a href="carrito.php?vaciar=1" style="color: red;">🚫 Vaciar carrito</a>
-<?php endif; ?>
-
-<br><br>
-<a href="catalogo.php">← Volver al catálogo</a><br>
-<a href="usuario.php">🏠 Volver al panel del usuario</a>
+            <div class="text-center">
+                <h4 class="mb-3">💰 Total: $<?= number_format($total, 0, ',', '.') ?></h4>
+                <a href="catalogo.php" class="btn btn-secondary me-2">← Seguir comprando</a>
+                <a href="confirmar_pedido.php" class="btn btn-success">✅ Confirmar pedido</a>
+            </div>
+        <?php endif; ?>
+    </div>
+</body>
+</html>

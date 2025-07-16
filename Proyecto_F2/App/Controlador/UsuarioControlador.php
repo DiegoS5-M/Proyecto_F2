@@ -20,14 +20,17 @@ public function guardar() {
     $usuario = new Usuario();
     $resultado = $usuario->registrar($_POST);
 
+    return $resultado ? true : false;
+
+
     if ($resultado) {
         echo "<h3 style='color:green'>✅ Usuario registrado correctamente</h3>";
-        echo "<a href='/Proyecto_F2/Public/usuario.php'>Volver al formulario</a>";
-        echo "<a href= /Proyecto_F2/Public/admin.php'>Volver al panel del Administrador</a>";
+        echo "<a href='/Proyecto_F2/Public/usuario.php'>Volver al formulario</a><br>";
+        echo "<a href='/Proyecto_F2/Public/admin.php'>Volver al panel del Administrador</a>";
     } else {
         echo "<h3 style='color:red'>❌ Error al registrar usuario</h3>";
-        echo "<a href='/Proyecto_F2/Public/usuario.php'>Volver al formulario</a>";
-        echo "<a href= /Proyecto_F2/Public/admin.php'>Volver al panel del Administrador</a>";
+        echo "<a href='/Proyecto_F2/Public/usuario.php'>Volver al formulario</a><br>";
+        echo "<a href='/Proyecto_F2/Public/admin.php'>Volver al panel del Administrador</a>";
     }
 }
     }

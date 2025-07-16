@@ -8,12 +8,15 @@
         <th>Cantidad</th>
     </tr>
     <?php foreach ($productos as $p): ?>
+        
     <tr>
+        
         <td><?= $p['Id_Producto'] ?></td>
         <td><?= $p['Nombre_Producto'] ?></td>
         <td><?= $p['Precio_costo']?></td>
         <td><?= $p['Precio_venta'] ?></td>
         <td><?= $p['Cantidad_en_Stock'] ?></td>
+        <td><a href="editar_producto.php?id=<?= $p['Id_Producto'] ?>">✏️ Editar</a></td>
     </tr>
     <?php endforeach; ?>
 </table>

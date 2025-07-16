@@ -28,7 +28,7 @@ class LoginControlador extends Controlador {
                     header('Location: ../App/Vista/Pedidos/index.php');
                     break;
                 case 'Administrador':
-                    header('Location: ../App/Public/admin.php');
+                    header('Location: /Proyecto_F2/Public/admin.php');
                     break;
             }
         } else {

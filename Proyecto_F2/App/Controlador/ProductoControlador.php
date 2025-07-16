@@ -2,33 +2,33 @@
 require_once __DIR__ . '/../Modelo/Producto.php';
 
 class ProductoControlador {
-    public function crear() {
-        include '../App/Vista/Producto/crear.php';
-    }
 
     public function guardar() {
-    $producto = new Producto();
-    $resultado = $producto->registrar($_POST);
+        $producto = new Producto();
+        return $producto->registrar($_POST);  // Devuelve true o false
+    }
 
-    if ($resultado) {
-        echo "<p style='color: green; font-weight: bold;'>✅ Producto registrado correctamente.</p>";
-        echo "<a href='/Proyecto_F2/Public/producto.php'>🔁 Volver al formulario</a><br>";
-        echo "<a href='/Proyecto_F2/Public/admin.php'>🏠 Volver al panel del administrador</a>";
-    } else {
-        echo "<p style='color: red; font-weight: bold;'>❌ Error al registrar el producto.</p>";
-        echo "<a href='/Proyecto_F2/Public/producto.php'>🔁 Intentar de nuevo</a><br>";
-        echo "<a href='/Proyecto_F2/Public/admin.php'>🏠 Volver al panel del administrador</a>";
-    }
-    }
     public function listar() {
         $producto = new Producto();
-        $productos = $producto->obtenerTodos();
+        return $producto->obtenerTodos();  // Devuelve array de productos
+    }
 
-        include '../App/Vista/Producto/listar.php';
+    public function crear() {
+        $mensaje = '';
+        $productos = [];
+
+        // Si el formulario fue enviado
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registrar'])) {
+            $resultado = $this->guardar();
+            $mensaje = $resultado ? 'exito' : 'error';
+        }
+
+        // Si se solicitó ver la lista
+        if (isset($_GET['listar'])) {
+            $productos = $this->listar();
+        }
+
+        // Cargar la vista
+        include '../App/Vista/Producto/crear.php';
     }
 }
-
-
-
-
-?>

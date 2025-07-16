@@ -2,19 +2,51 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Iniciar sesión</title>
+  <title>Login - Cafetería Ebenezer</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .login-box {
+      max-width: 400px;
+      margin: 80px auto;
+      padding: 30px;
+      border-radius: 10px;
+      background-color: white;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 <body>
-    <h2>Inicio de sesión</h2>
+    
+    <div class="container">
+    <div class="login-box">
+      <h3 class="text-center mb-4">🔐 Iniciar sesión</h3>
+      
+      <form action="login.php" method="POST">
+        <div class="mb-3">
+          <label for="correo" class="form-label">Correo electrónico</label>
+          <input type="email" class="form-control" id="correo" name="correo" required>
+        </div>
 
-    <form action="login.php" method="POST">
-        <label for="correo">Correo electrónico:</label>
-        <input type="email" name="correo" required><br><br>
+        <div class="mb-3">
+          <label for="celular" class="form-label">Número de celular</label>
+          <input type="text" class="form-control" id="celular" name="celular" required>
+        </div>
 
-        <label for="celular">Celular:</label>
-        <input type="text" name="celular" required><br><br>
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary">Ingresar</button>
+        </div>
+      </form>
 
-        <button type="submit">Iniciar sesión</button>
-    </form>
+      <?php if (isset($_SESSION['error_login'])): ?>
+        <div class="alert alert-danger mt-3">
+          <?= $_SESSION['error_login'] ?>
+          <?php unset($_SESSION['error_login']); ?>
+        </div>
+      <?php endif; ?>
+    </div>
+  </div>
 </body>
 </html>

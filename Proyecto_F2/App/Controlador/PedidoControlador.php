@@ -31,6 +31,21 @@ class PedidoControlador {
             echo "<h3>❌ Error al crear pedido.</h3>";
         }
     }
+
+    public function listar() {
+    session_start();
+
+    // Validar que solo el administrador acceda (opcional)
+    if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['Rol'] !== 'Administrador') {
+        echo "⚠️ Acceso denegado.";
+        return;
+    }
+
+    $pedido = new Pedido();
+    $pedidos = $pedido->listarPedidos(); // este método lo agregaste en Pedido.php 
+
+    include "../App/Vista/Pedido/listar.php"; // asegúrate de tener este archivo
+}
 }
 
 ?>
